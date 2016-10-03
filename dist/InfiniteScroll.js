@@ -60,10 +60,18 @@ var InfiniteScroll = function (_Component) {
             var pageStart = _props.pageStart;
             var threshold = _props.threshold;
             var useWindow = _props.useWindow;
+            var scrollable = _props.scrollable;
 
-            var props = _objectWithoutProperties(_props, ['children', 'element', 'hasMore', 'initialLoad', 'loader', 'loadMore', 'pageStart', 'threshold', 'useWindow']);
+            var props = _objectWithoutProperties(_props, ['children', 'element', 'hasMore', 'initialLoad', 'loader', 'loadMore', 'pageStart', 'threshold', 'useWindow', 'scrollable']);
 
             return _react2.default.createElement(element, props, children, hasMore && (loader || this._defaultLoader));
+        }
+    }, {
+        key: 'getScrollEl',
+        value: function getScrollEl() {
+            if (this.props.useWindow) return window;
+            if (this.props.scrollable != null) return document.querySelector(this.props.scrollable);
+            return _reactDom2.default.findDOMNode(this).parentNode;
         }
     }, {
         key: 'calculateTopPosition',
@@ -84,7 +92,8 @@ var InfiniteScroll = function (_Component) {
                 var scrollTop = scrollEl.pageYOffset !== undefined ? scrollEl.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
                 offset = this.calculateTopPosition(el) + el.offsetHeight - scrollTop - window.innerHeight;
             } else {
-                offset = el.scrollHeight - el.parentNode.scrollTop - el.parentNode.clientHeight;
+                var parentEl = this.getScrollEl();
+                offset = el.scrollHeight - parentEl.scrollTop - parentEl.clientHeight;
             }
 
             if (offset < Number(this.props.threshold)) {
@@ -102,10 +111,11 @@ var InfiniteScroll = function (_Component) {
                 return;
             }
 
-            var scrollEl = window;
-            if (this.props.useWindow == false) {
-                scrollEl = _reactDom2.default.findDOMNode(this).parentNode;
-            }
+            // let scrollEl = window;
+            // if(this.props.useWindow == false) {
+            //     scrollEl = ReactDOM.findDOMNode(this).parentNode;
+            // }
+            var scrollEl = this.getScrollEl();
 
             scrollEl.addEventListener('scroll', this.scrollListener);
             scrollEl.addEventListener('resize', this.scrollListener);
@@ -117,10 +127,11 @@ var InfiniteScroll = function (_Component) {
     }, {
         key: 'detachScrollListener',
         value: function detachScrollListener() {
-            var scrollEl = window;
-            if (this.props.useWindow == false) {
-                scrollEl = _reactDom2.default.findDOMNode(this).parentNode;
-            }
+            // var scrollEl = window;
+            // if(this.props.useWindow == false) {
+            //     scrollEl = ReactDOM.findDOMNode(this).parentNode;
+            // }
+            var scrollEl = this.getScrollEl();
 
             scrollEl.removeEventListener('scroll', this.scrollListener);
             scrollEl.removeEventListener('resize', this.scrollListener);
@@ -150,7 +161,8 @@ InfiniteScroll.propTypes = {
     loadMore: _react.PropTypes.func.isRequired,
     pageStart: _react.PropTypes.number,
     threshold: _react.PropTypes.number,
-    useWindow: _react.PropTypes.bool
+    useWindow: _react.PropTypes.bool,
+    scrollable: _react.PropTypes.string
 };
 InfiniteScroll.defaultProps = {
     element: 'div',

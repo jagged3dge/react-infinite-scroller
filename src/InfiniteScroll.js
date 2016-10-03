@@ -9,7 +9,8 @@ export default class InfiniteScroll extends Component {
         loadMore: PropTypes.func.isRequired,
         pageStart: PropTypes.number,
         threshold: PropTypes.number,
-        useWindow: PropTypes.bool
+        useWindow: PropTypes.bool,
+        scrollable: PropTypes.string,
     };
 
     static defaultProps = {
@@ -47,10 +48,17 @@ export default class InfiniteScroll extends Component {
             pageStart,
             threshold,
             useWindow,
+            scrollable,
             ...props
         } = this.props;
 
         return React.createElement(element, props, children, hasMore && (loader || this._defaultLoader));
+    }
+
+    getScrollEl() {
+      if (this.props.useWindow) return window
+      if (this.props.scrollable != null) return document.querySelector(this.props.scrollable)
+      return ReactDOM.findDOMNode(this).parentNode
     }
 
     calculateTopPosition(el) {
@@ -69,7 +77,8 @@ export default class InfiniteScroll extends Component {
             var scrollTop = (scrollEl.pageYOffset !== undefined) ? scrollEl.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
             offset = this.calculateTopPosition(el) + el.offsetHeight - scrollTop - window.innerHeight;
         } else {
-            offset = el.scrollHeight - el.parentNode.scrollTop - el.parentNode.clientHeight;
+            const parentEl = this.getScrollEl()
+            offset = el.scrollHeight - parentEl.scrollTop - parentEl.clientHeight;
         }
 
         if(offset < Number(this.props.threshold)) {
@@ -86,10 +95,7 @@ export default class InfiniteScroll extends Component {
             return;
         }
 
-        let scrollEl = window;
-        if(this.props.useWindow == false) {
-            scrollEl = ReactDOM.findDOMNode(this).parentNode;
-        }
+        const scrollEl = this.getScrollEl()
 
         scrollEl.addEventListener('scroll', this.scrollListener);
         scrollEl.addEventListener('resize', this.scrollListener);
@@ -100,10 +106,7 @@ export default class InfiniteScroll extends Component {
     }
 
     detachScrollListener() {
-        var scrollEl = window;
-        if(this.props.useWindow == false) {
-            scrollEl = ReactDOM.findDOMNode(this).parentNode;
-        }
+        const scrollEl = this.getScrollEl()
 
         scrollEl.removeEventListener('scroll', this.scrollListener);
         scrollEl.removeEventListener('resize', this.scrollListener);
@@ -112,7 +115,7 @@ export default class InfiniteScroll extends Component {
     componentWillUnmount() {
         this.detachScrollListener();
     }
-    
+
     // Set a defaut loader for all your `InfiniteScroll` components
     setDefaultLoader(loader) {
         this._defaultLoader = loader;
